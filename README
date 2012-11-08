@@ -1,0 +1,86 @@
+This is a Mail-User-Agent written on top of notmuch and ACME.
+
+Workflow
+========
+
+1. Searching
+	To search, a user enters his search requirements (as for notmuch search), e.g., `tag:inbox'. He then selects this with
+	the right mouse button (acme search query).
+	A new window pops up, containing the threads that match the search, for example,
+	     1			 39 mins. ago [1/6] Christian von Essen| Power, Guy H. (ARC-TI), Kimberly Salazar; Internship (attachment inbox replied todo)
+	     2			 42 mins. ago [2/2] Thomas Mensink, Christian von Essen; Landlord (inbox replied)
+	     3			 49 mins. ago [2/4] AGENCE PRIMA IMMOBILIER ..., Christian von Essen; Ce Week-End (inbox replied)
+	     4			  Today 15:40 [1/1] SBB Marktforschung; Befragung zum Thema Mobilität (attachment inbox unread)
+	     5			  Today 14:57 [1/1] Lancereau Quentin; [ESMUG-GUCEM] Conference Neige et Avalanche (inbox unread)
+	     6			  Today 12:37 [1/1] youri picart; [ESMUG-GUCEM] Le GUCEM passe à la télé ! (inbox unread)
+	     7			  Today 11:41 [1/1] Formal Methods Europe Group Members; [1] discussion on LinkedIn (inbox unread)
+	     8			  Today 11:25 [1/1] Thomas Stroeder; [AProVE] aprove branch, master, updated. 0bd2ca23b949b62c98546c0303db2139ec8a09a1 (inbox unread)
+	     9			  Today 11:24 [1/1] Thomas Stroeder; [AProVE] aprove branch, llvm, updated. a3777fdd93acb224719513824e30f30ad1f04bbd (inbox unread)
+	    10			  Today 11:16 [1/1] Carsten Otto; [AProVE] aprove branch, jbc, updated. ecbc71427a477f97e173bf06331596ff181f6641 (inbox unread)
+	    11			  Today 10:46 [1/1] Stellenanzeigen; Neue Stellenangebote bei zeit.de/jobs (inbox unread)
+	    12			  Today 10:12 [1/1] Carsten Otto; definite equality annotation & git-Probleme (inbox signed unread)
+	    13			  Today 09:39 [1/1] Secretariat ED MSTII; [mstii3a] FERMETURE ACCUEIL CED : 09 Novembre (inbox unread)
+	    14			  Today 09:18 [1/2] Christian von Essen| von Essen, Mathias; Zahnregulierung (inbox replied)
+
+2. Expanding Threads
+	To expand a thread, the user right-clicks on a line in the new window.
+	A new window pops up, containing an indented version of this thread.
+	By default, only messages matching the original search query are shown.
+	If the user executes ToggleMatch, all messages will be shown. Executing
+	ToggleMatch goes back to the initial mode.
+	
+		Re: Ce Week-End
+		---------------
+	
+	     1			"AGENCE PRIMA IMMOBILIER ..." <primaimmobilier@yahoo.fr
+	     2			  Christian von Essen <christian@mvonessen.de>
+	     3			    "AGENCE PRIMA IMMOBILIER ..." <primaimmobilier@yahoo.fr> 
+	     4			      Christian von Essen <christian@mvonessen.de> 
+	
+3. Viewing an email
+	Again, right-clicking on any of these messages will open up a new window, showing the message.
+	The line of the message we just opened will be hilighted.
+
+
+4. Tagging messages
+	The user can always execute +tag or -tag to add or remove tags.
+	In the message window, the tag will be applied to the message
+	In the thread window, the tag will be applied to all threads
+	in the window that are displayed (i.e., behaviour depends on
+	ToggleMatch), if no text is active. Otherwise, the tag will be
+	applied to all messages that are touched by the region.
+
+
+5. Composing and replying emails
+	The user can always execute NewMessage to pop up a window to send
+	a new message.	The user can always execute Reply to set up a
+	new window for replying to a message.  If no text is selected,
+	then the reply will be sent to everybody. Otherwise, the reply
+	will be sent to whatever text is selected.
+
+	
+6. Attachments
+	Adding messages and downloading/opening attachments it TBD, but most likely:
+	Downloading/adding:
+		We display non-text attachments as
+		[ image/jpg foo.jpg ].
+		We provide functions Open and Save which will look for a filename
+		with the current dot. If so, it will try to open/save
+		the file.  Save takes as argument either a folder or a
+		filename to save it as.  If multiple lines are selected,
+		we try everything that looks like a filename.  We escape
+		filenames containing whitespace via the usual backslash.
+
+
+
+Milestones
+==========
+
+1. Search
+2. Thread list
+3. Showing an email
+4. Mail composition
+5. Mail reply
+6. Tagging
+7. Looking at attachments
+8. Making attachments
