@@ -72,7 +72,7 @@ class ThreadList(ThreadedWindow):
 			i += 1
 			# Terrible format string
 			# First the (local) thread number, with configurable width,
-			# then the number of messages matching the query in comparison to 
+			# then the number of messages matching the query in comparison to
 			# the number of messages in the thread,
 			# then all author's names, finally the subject (after a semicolon)
 			format_string = u"{nr:{width}d}\t [{matched}/{all}] {authors}; {subject}"
@@ -177,6 +177,7 @@ class Thread(ThreadedWindow):
 
 class Message(ThreadedWindow):
 	HEADERS_TO_SHOW = ['to', 'from', 'subject', 'date', 'cc', 'bcc']
+	"List of headers to show, in that order, for the message."
 	def __init__(self, message):
 		super(Message, self).__init__()
 		self.filename = message.get_filename()
@@ -187,28 +188,37 @@ class Message(ThreadedWindow):
 			message = email.message_from_file(f)
 		self.addr = ","
 		with self.datafile('a') as data:
+			# Print headers
 			for key in Message.HEADERS_TO_SHOW:
 				if key in message:
 					print >> data, key + ": " + message[key]
-			
-			print >> data, message.get_charsets()
 
+			# Print separator
 			print >> data, "-" * 80
 
+			# Recur over message bodies (arranged like a tree, i.e., messages are either leaves
+			# (type is not multipart) or they contain lists of submmessages)
+			# Returns true if we displayed something for that message (useful for multipart/alternative)
 			def rec(message):
+				handled = False
 				if message.get_content_maintype() == 'text':
 					print >> data, message.get_payload(decode=True)
-					return True
+					handled = True
 				elif message.get_content_type() == 'multipart/alternative':
+					# Only handle one message
 					sub_messages = message.get_payload()
 					for message in sub_messages:
 						if rec(message):
+							handled = True
 							break
 				elif message.get_content_type() == 'multipart/mixed':
+					# Display all messages in a multipart mixed message
 					for msg in message.get_payload():
-						rec(msg)
+						handled |= rec(msg)
 				else:
 					print >> data, "[ " + message.get_content_type() + " ]"
+					handled = True
+				return handled
 			rec(message)
 		self.clean()
 		self.addr = "0"
