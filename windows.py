@@ -3,7 +3,9 @@ import notmuch
 import math
 import threading
 import email
+import email.utils
 import codecs
+import subprocess
 
 class ThreadedWindow(acme.Window):
 	"""A window that controls its own events in its own thread.
@@ -226,6 +228,36 @@ class Message(ThreadedWindow):
 		self.set_dot_to_addr()
 		self.show()
 
+class NewMessage(ThreadedWindow):
+	"""Window for composing new messages.
+
+So far, this is just a normal text window that reacts to the 'Send' command by
+handing of its contents to msmtp"""
+	TEMPLATE = """From: {sender}
+To: {recipent}
+Subject: {subject}
+Date: {date}
+
+{body}"""
+
+	def __init__(self, body="", sender="", to="", subject="", date=None):
+		super(NewMessage, self).__init__()
+		if date is None:
+			date = email.utils.formatdate()
+		self.data = NewMessage.TEMPLATE.format(sender = sender, recipent=to, subject=subject, body=body, date=date)
+		self.addr = '0'
+		self.set_dot_to_addr()
+		self.show()
+
+		self.tag = "Send"
+
+	def Send(self, ev):
+		p = subprocess.Popen(["msmtp", "-t"], stdin=self.bodyfile('r'), stdout=self.errorsfile('a'), stderr=subprocess.STDOUT)
+		p.wait()
+		if p.returncode == 0:
+			self.clean()
+		return True
+
 def test(query):
 	db = notmuch.Database()
 	q = notmuch.Query(db, query)
@@ -234,5 +266,7 @@ def test(query):
 	return win
 
 if __name__ == '__main__':
-	import sys
-	test(" ".join(sys.argv[1:]))
+	# import sys
+	# test(" ".join(sys.argv[1:]))
+	w = NewMessage(sender="christian@mvonessen.de", to='/dev/null', subject='Blubb')
+	w.run()
