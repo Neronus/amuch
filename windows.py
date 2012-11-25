@@ -10,29 +10,29 @@ class ThreadedWindow(acme.Window):
 
 	This class combines the capabilities of an acme.Window (by inheritance)
 	and an acme.EventLoop (by composition).
-	
+
 	This means that you can use the usual acme.Window methods to modify
 	this window, and that you can either override the handle method or
 	add methods that should be callable as for an acme.EventLoop.
-	
+
 	Finally, if you run() an instance of this class, it will not block but
 	spawn a new thread for its eventloop."""
 	class EventLoop(acme.EventLoop):
 		def __init__(self, win):
 			super(ThreadedWindow.EventLoop, self).__init__(win)
-			
+
 		def handle(self, ev):
 			self.win.handle(ev)
-			
+
 	def __init__(self, id=None):
 		super(ThreadedWindow, self).__init__(id=id)
 		self.loop = ThreadedWindow.EventLoop(self)
-	
+
 	def handle(self, ev):
 		if (ev.type == 'BUTTON_2_TO_TAG' or ev.type == 'BUTTON_2_TO_BODY') and hasattr(self, ev.text):
 			getattr(self, ev.text)(ev)
 			return True
-		
+
 	def run(self):
 		self.t = threading.Thread(target=self.loop.run)
 		self.t.start()
@@ -51,17 +51,17 @@ class ThreadList(ThreadedWindow):
 			self.Redraw()
 		finally:
 			self.clean()
-	
+
 	def Redraw(self):
 		"""Redraw the contents of this window completely.
-		
+
 		Can be called as a window command."""
 		# Delete everything
 		self.addr = ","
 		self.data = ""
-		
+
 		# Draw list of threads top to bottom
-		
+
 		number_of_threads = len(self.threads)
 		# Number of digits necessary to print largest thread number (used for filling)
 		number_of_digits =int(math.floor(math.log(number_of_threads, 10)) + 1)
@@ -84,7 +84,7 @@ class ThreadList(ThreadedWindow):
 				all=thread.get_total_messages()
 			)
 			print >>data, unicode.encode(formatted, "utf-8")
-	
+
 	def handle(self, ev):
 		# If we handle a button 3 (search button) event in the body, then we find the current
 		# line we are in (by looking for the first number in that line)
@@ -112,14 +112,14 @@ class Thread(ThreadedWindow):
 		self.only_matched = True
 		# Redraw whole screen - will allso fill self.message_list
 		self.Redraw()
-	
+
 	def _message_hierarchy(self):
 		"""Generator for message hierarchy.
-		
+
 		Produces tuples (msg, depth), where message is a message and
 		depth is the message's depth in the message hierarchy, i.e., if a message
 		has depth i then all its children have depth i+1.
-		
+
 		Messages are generated in a depth-first traversal of the thread."""
 		stack = [ (msg, 0) for msg in self.toplevel_messages ]
 		stack.reverse()
@@ -129,12 +129,12 @@ class Thread(ThreadedWindow):
 			replies = [ (reply, depth+1) for reply in msg.get_replies() ]
 			replies.reverse()
 			stack.extend(replies)
-	
+
 	def ToggleMatch(self, ev):
 		"""Toggle showing only messages matching the query. Redraws if called"""
 		self.only_matched = not self.only_matched
 		self.Redraw(ev)
-	
+
 	def Redraw(self, ev=None):
 		"""Redraw whole screen"""
 		data = self.datafile('a')
@@ -162,7 +162,7 @@ class Thread(ThreadedWindow):
 				width=width,
 				nr = i)
 			print >>data, unicode.encode(formatted, "utf-8")
-	
+
 	def handle(self, ev):
 		if ev.type == 'BUTTON_3_TO_BODY' and ev.flag == 0:
 			self.addr = "#%d-/^/+/[0-9]+/" % ev.addr1
@@ -173,7 +173,7 @@ class Thread(ThreadedWindow):
 			return True
 		else:
 			return super(Thread, self).handle(ev)
-			
+
 
 class Message(ThreadedWindow):
 	HEADERS_TO_SHOW = ['to', 'from', 'subject', 'date', 'cc', 'bcc']
@@ -181,7 +181,7 @@ class Message(ThreadedWindow):
 		super(Message, self).__init__()
 		self.filename = message.get_filename()
 		self.Redraw()
-	
+
 	def Redraw(self):
 		with file(self.filename) as f:
 			message = email.message_from_file(f)
@@ -192,9 +192,9 @@ class Message(ThreadedWindow):
 					print >> data, key + ": " + message[key]
 			
 			print >> data, message.get_charsets()
-			
+
 			print >> data, "-" * 80
-			
+
 			def rec(message):
 				if message.get_content_maintype() == 'text':
 					print >> data, message.get_payload(decode=True)
@@ -223,4 +223,4 @@ def test(query):
 	return win
 
 if __name__ == '__main__':
-	test("from:kimberly tag:attachment")
+	test("tag:inbox")
