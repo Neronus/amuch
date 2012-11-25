@@ -216,7 +216,9 @@ class Message(ThreadedWindow):
 					for msg in message.get_payload():
 						handled |= rec(msg)
 				else:
-					print >> data, "[ " + message.get_content_type() + " ]"
+					# Just print the message's type and, if it has, its filename
+					filename = message.get('Content-Disposition') or ""
+					print >> data, "[ %s %s ]" % (message.get_content_type(), filename)
 					handled = True
 				return handled
 			rec(message)
