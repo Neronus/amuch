@@ -235,4 +235,5 @@ def test(query):
 	return win
 
 if __name__ == '__main__':
-	test("tag:inbox")
+	import sys
+	test(" ".join(sys.argv[1:]))
