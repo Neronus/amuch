@@ -22,7 +22,7 @@ class ThreadedWindow(acme.Window):
 			super(ThreadedWindow.EventLoop, self).__init__(win)
 
 		def handle(self, ev):
-			self.win.handle(ev)
+			return self.win.handle(ev)
 
 	def __init__(self, id=None):
 		super(ThreadedWindow, self).__init__(id=id)
@@ -30,8 +30,7 @@ class ThreadedWindow(acme.Window):
 
 	def handle(self, ev):
 		if (ev.type == 'BUTTON_2_TO_TAG' or ev.type == 'BUTTON_2_TO_BODY') and hasattr(self, ev.text):
-			getattr(self, ev.text)(ev)
-			return True
+			return getattr(self, ev.text)(ev)
 
 	def run(self):
 		self.t = threading.Thread(target=self.loop.run)
