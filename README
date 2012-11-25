@@ -76,13 +76,13 @@ Workflow
 Milestones
 ==========
 
-1. Search
-2. Thread list
-3. Showing an email
-4. Mail composition
-5. Saving drafts and sent messages
-6. Mail reply
-7. Proper handling of encodings
-8. Tagging
-9. Looking at attachments
-10. Making attachments
+1. [X] Search
+2. [X] Thread list
+3. [X] Showing an email
+4. [ ] Mail composition
+5. [ ] Saving drafts and sent messages
+6. [ ] Mail reply
+7. [?] Proper handling of encodings
+8. [ ] Tagging
+9. [ ] Looking at attachments
+10. [ ] Making attachments
