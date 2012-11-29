@@ -266,7 +266,7 @@ def test(query):
 	return win
 
 if __name__ == '__main__':
-	# import sys
-	# test(" ".join(sys.argv[1:]))
-	w = NewMessage(sender="christian@mvonessen.de", to='/dev/null', subject='Blubb')
-	w.run()
+	import sys
+	test(" ".join(sys.argv[1:]))
+	# w = NewMessage(sender="christian@mvonessen.de", to='/dev/null', subject='Blubb')
+	# w.run()
