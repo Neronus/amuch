@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import acme
 import notmuch
 import math
