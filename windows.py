@@ -198,6 +198,7 @@ class Message(ThreadedWindow):
 	def __init__(self, message):
 		super(Message, self).__init__()
 		self.filename = message.get_filename()
+		self.tag = "| Reply"
 		self.Redraw()
 
 	def Redraw(self):
@@ -243,6 +244,59 @@ class Message(ThreadedWindow):
 		self.addr = "0"
 		self.set_dot_to_addr()
 		self.show()
+	
+	def Reply(self, ev):
+		reply = self.setup_reply()
+		win = NewMessage(**reply)
+		win.run()
+		return True
+	
+	def setup_reply_to(self, message):
+		# TODO: Handle CC and multiple senders
+		senders = message['from']
+		return senders
+	
+	def setup_reply_title(self, message):
+		subject = message['subject']
+		subject = subject.lower()
+		subject = subject.strip()
+		if not (subject.startswith("re:") or subject.startswith("re :") or subject.startswith("aw:")):
+			subject = "Re: " + subject
+			return subject
+		return subject
+	
+	def setup_reply_body(self, message):
+		"""Returns the body of a reply from the message displayed by this window."""
+		# We will iterate over this message to find the first text message
+		def rec(message):
+			result = None
+			if message.get_content_type() == 'text/plain':
+				result = message.get_payload(decode=True)
+			elif message.get_content_maintype() == 'multipart':
+				try:
+					sub_rec = (rec(sub) for sub in message.get_payload())
+					result = next(res for res in sub_rec if res)
+				except StopIteration:
+					pass
+			elif message.get_content_type() == 'text/html':
+				# TODO: Wash HTML?
+				result = message.get_payload(decode=True)
+			return result
+		body = rec(message)
+		if body:
+			lines = body.split('\n')
+			body = '\n'.join('> ' + line for line in lines)
+		return body
+	
+	def setup_reply(self):
+		with file(self.filename) as f:
+			message = email.message_from_file(f)
+		body = self.setup_reply_body(message)
+		title = self.setup_reply_title(message)
+		to = self.setup_reply_to(message)
+		# TODO Do something more sensible about this
+		from_ = 'christian@mvonessen.de'
+		return dict(body = body, subject = title, to=to, sender=from_)
 
 class NewMessage(ThreadedWindow):
 	"""Window for composing new messages.
