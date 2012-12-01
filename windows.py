@@ -94,10 +94,17 @@ class ThreadList(ThreadedWindow):
 		# then we pen a new window with that thread
 		# Every other command is handled by the parent
 		if ev.type == 'BUTTON_3_TO_BODY' and ev.flag == 0:
+			# Look for the first number in the line on which the user just clicked
 			addr1, addr2 = ev.addr1, ev.addr2
 			self.addr = "#%d-/^/+/[0-9]+/" % ev.addr1
 			nr = int(self.xdata)
 			msgs = self.threads[nr-1].get_toplevel_messages()
+
+			# Mark the line (i.e., set dot) on which we just clicked
+			self.addr = "#%d-/^/+/.*/" % ev.addr1
+			self.set_dot_to_addr()
+
+			# Open a new window
 			t = Thread(msgs)
 			t.run()
 			return True
@@ -168,9 +175,16 @@ class Thread(ThreadedWindow):
 
 	def handle(self, ev):
 		if ev.type == 'BUTTON_3_TO_BODY' and ev.flag == 0:
+			# Find the first number in the line clicked on
 			self.addr = "#%d-/^/+/[0-9]+/" % ev.addr1
 			nr = int(self.xdata)
 			msg = self.message_list[nr - 1]
+
+			# Mark the line (i.e., set dot) on which we just clicked
+			self.addr = "#%d-/^/+/.*/" % ev.addr1
+			self.set_dot_to_addr()
+
+			# Open new window
 			new_win = Message(msg)
 			new_win.run()
 			return True
