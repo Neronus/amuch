@@ -115,13 +115,34 @@ class Thread(ThreadedWindow):
 	"""Window for displaying a single thread."""
 	def __init__(self, toplevel_messages):
 		super(Thread, self).__init__()
+		# Keep track of what we've got from above - we may need to keep it around
+		self._keeping_track_for_notmuch = toplevel_messages
 		# Get a copy of the toplevel messages (we need to iterate over them several times)
 		self.toplevel_messages = []
 		for msg in toplevel_messages:
 			self.toplevel_messages.append(msg)
+		self._set_message_hierarchy()
 		self.only_matched = True
 		# Redraw whole screen - will allso fill self.message_list
 		self.Redraw()
+
+	def _set_message_hierarchy(self):
+		"""Generator for message hierarchy.
+
+		Produces tuples (msg, depth), where message is a message and
+		depth is the message's depth in the message hierarchy, i.e., if a message
+		has depth i then all its children have depth i+1.
+
+		Messages are generated in a depth-first traversal of the thread."""
+		stack = [ (msg, 0) for msg in self.toplevel_messages ]
+		self.message_hierarchy = []
+		stack.reverse()
+		while stack:
+			msg, depth = stack.pop()
+			self.message_hierarchy.append((msg, depth))
+			replies = [ (reply, depth+1) for reply in msg.get_replies() ]
+			replies.reverse()
+			stack.extend(replies)
 
 	def _message_hierarchy(self):
 		"""Generator for message hierarchy.
@@ -131,19 +152,13 @@ class Thread(ThreadedWindow):
 		has depth i then all its children have depth i+1.
 
 		Messages are generated in a depth-first traversal of the thread."""
-		stack = [ (msg, 0) for msg in self.toplevel_messages ]
-		stack.reverse()
-		while stack:
-			msg, depth = stack.pop()
-			yield (msg, depth)
-			replies = [ (reply, depth+1) for reply in msg.get_replies() ]
-			replies.reverse()
-			stack.extend(replies)
+		return iter(self.message_hierarchy)
 
 	def ToggleMatch(self, ev):
 		"""Toggle showing only messages matching the query. Redraws if called"""
 		self.only_matched = not self.only_matched
 		self.Redraw(ev)
+		return True
 
 	def Redraw(self, ev=None):
 		"""Redraw whole screen"""
@@ -151,9 +166,11 @@ class Thread(ThreadedWindow):
 		last_subject = None
 		# Message counter
 		i = 0
+		# Clear screen
+		self.addr = ","
 		self.message_list = []
 		for message, depth in self._message_hierarchy():
-			if not self.only_matched or not message.get_flag(notmuch.Message.FLAG.MATCH):
+			if self.only_matched and not message.get_flag(notmuch.Message.FLAG.MATCH):
 				continue
 			self.message_list.append(message)
 			i = i + 1
