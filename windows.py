@@ -306,32 +306,34 @@ class Message(ThreadedWindow):
 		return body
 	
 	def setup_reply(self):
+		"""Setups up a dictionary suitable to giving to NewMessage"""
 		with file(self.filename) as f:
 			message = email.message_from_file(f)
-		body = self.setup_reply_body(message)
-		title = self.setup_reply_title(message)
-		to = self.setup_reply_to(message)
+		d = {}
+		d['body'] = self.setup_reply_body(message)
+		d['subject'] = self.setup_reply_title(message)
+		d['to'] = self.setup_reply_to(message)
+		if 'message-id' in message:
+			# TODO: Add other messages from the same thread as well?
+			d['references'] = message['message-id']
 		# TODO Do something more sensible about this
-		from_ = 'christian@mvonessen.de'
-		return dict(body = body, subject = title, to=to, sender=from_)
+		d['sender'] = 'christian@mvonessen.de'
+		return d
 
 class NewMessage(ThreadedWindow):
 	"""Window for composing new messages.
 
 So far, this is just a normal text window that reacts to the 'Send' command by
 handing of its contents to msmtp"""
-	TEMPLATE = """From: {sender}
-To: {recipent}
-Subject: {subject}
-Date: {date}
-
-{body}"""
-
-	def __init__(self, body="", sender="", to="", subject="", date=None):
+	def __init__(self, body="", sender="", to="", subject="", date=None, **kwargs):
 		super(NewMessage, self).__init__()
 		if date is None:
 			date = email.utils.formatdate()
-		self.data = NewMessage.TEMPLATE.format(sender = sender, recipent=to, subject=subject, body=body, date=date)
+		kwargs.update({'from': sender, 'to': to, 'subject': subject, 'date': date})
+		for k,v in kwargs.items():
+			self.data = k + ": " + v + "\n"
+		self.data = "\n"
+		self.data = body
 		self.addr = '0'
 		self.set_dot_to_addr()
 		self.show()
