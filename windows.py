@@ -210,6 +210,9 @@ class Thread(ThreadedWindow):
 
 
 class Message(ThreadedWindow):
+	"""Window for displaying a single message.
+
+	This window displays a message from a file in Maildir style."""
 	HEADERS_TO_SHOW = ['to', 'from', 'subject', 'date', 'cc', 'bcc', 'message-id']
 	"List of headers to show, in that order, for the message."
 	def __init__(self, message):
@@ -219,9 +222,14 @@ class Message(ThreadedWindow):
 		self.Redraw()
 
 	def Redraw(self):
+		# Read message from disk
 		with file(self.filename) as f:
 			message = email.message_from_file(f)
+
+		# Mark everything so that we replace the window content
 		self.addr = ","
+
+		# Many writes to the data file, so we open it
 		with self.datafile('a') as data:
 			# Print headers
 			for key in Message.HEADERS_TO_SHOW:
@@ -235,6 +243,7 @@ class Message(ThreadedWindow):
 			# (type is not multipart) or they contain lists of submmessages)
 			# Returns true if we displayed something for that message (useful for multipart/alternative)
 			def rec(message):
+				# Was this node handled, i.e., did we print anything? (Useful for multipart/alternative)
 				handled = False
 				if message.get_content_maintype() == 'text':
 					print >> data, message.get_payload(decode=True)
@@ -257,6 +266,8 @@ class Message(ThreadedWindow):
 					handled = True
 				return handled
 			rec(message)
+
+		# Done writing - Clean the window and go to top
 		self.clean()
 		self.addr = "0"
 		self.set_dot_to_addr()
