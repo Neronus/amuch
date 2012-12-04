@@ -250,11 +250,13 @@ class Message(ThreadedWindow):
 					handled = True
 				elif message.get_content_type() == 'multipart/alternative':
 					# Only handle one message
-					sub_messages = message.get_payload()
-					for message in sub_messages:
-						if rec(message):
-							handled = True
-							break
+					sub_messages = iter(message.get_payload())
+					try:
+						while not handled:
+							message = next(sub_messages)
+							handled = rec(message)
+					except StopIteration:
+						pass
 				elif message.get_content_type() == 'multipart/mixed':
 					# Display all messages in a multipart mixed message
 					for msg in message.get_payload():
