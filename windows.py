@@ -210,7 +210,7 @@ class Thread(ThreadedWindow):
 
 
 class Message(ThreadedWindow):
-	HEADERS_TO_SHOW = ['to', 'from', 'subject', 'date', 'cc', 'bcc']
+	HEADERS_TO_SHOW = ['to', 'from', 'subject', 'date', 'cc', 'bcc', 'message-id']
 	"List of headers to show, in that order, for the message."
 	def __init__(self, message):
 		super(Message, self).__init__()
@@ -323,8 +323,8 @@ class Message(ThreadedWindow):
 class NewMessage(ThreadedWindow):
 	"""Window for composing new messages.
 
-So far, this is just a normal text window that reacts to the 'Send' command by
-handing of its contents to msmtp"""
+	So far, this is just a normal text window that reacts to the 'Send' command by
+	handing of its contents to msmtp"""
 	def __init__(self, body="", sender="", to="", subject="", date=None, **kwargs):
 		super(NewMessage, self).__init__()
 		if date is None:
